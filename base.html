@@ -1,0 +1,7 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cupcakes Gourmet</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body><header><a class="logo" href="{{ url_for('main.catalogo') }}">🧁 Cupcakes Gourmet</a>
+<nav><a href="{{ url_for('main.carrinho') }}">Carrinho</a><a href="{{ url_for('main.acompanhar') }}">Meu pedido</a></nav></header>
+<main>{% with m = get_flashed_messages(with_categories=true) %}{% for c, t in m %}<div class="msg {{ c }}" role="alert">{{ t }}</div>{% endfor %}{% endwith %}
+{% block c %}{% endblock %}</main><footer>Projeto Integrador – Engenharia de Software II</footer></body></html>

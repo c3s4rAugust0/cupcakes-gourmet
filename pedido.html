@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block c %}<h1>Acompanhar pedido</h1>
+<form method="post" class="form"><label>Nº do pedido <input name="oid" type="number" value="{{ oid }}" required></label>
+<label>E-mail <input type="email" name="email" value="{{ email }}" required></label><button>Consultar</button></form>
+{% if pedido %}<section class="card"><h2>Pedido #{{ pedido.id_pedido }} — <span class="badge">{{ pedido.status.replace('_',' ') }}</span></h2>
+<p>Pagamento: {{ pedido.forma_pagamento.title() }} · Entrega: {{ pedido.endereco_entrega }}</p>
+<ul>{% for i in itens %}<li>{{ i.quantidade }}× {{ i.nome }} ({{ i.preco_unitario|brl }})</li>{% endfor %}</ul>
+<strong>Total: {{ pedido.total|brl }}</strong></section>{% endif %}{% endblock %}
