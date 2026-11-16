@@ -3,16 +3,16 @@ Diagramas revisados para refletir o que o aplicativo realmente faz na versão do
 1. Diagrama de casos de uso
 ```mermaid
 flowchart LR
-  C(\[Cliente])
-  L(\[Lojista])
-  subgraph Sistema\["Loja de Cupcakes"]
-    UC1(Consultar catálogo)
-    UC2(Gerenciar carrinho)
-    UC3(Finalizar pedido)
-    UC4(Acompanhar pedido)
-    UC5(Autenticar na área da loja)
-    UC6(Listar pedidos)
-    UC7(Atualizar status do pedido)
+  C["Cliente"]
+  L["Lojista"]
+  subgraph Sistema["Loja de Cupcakes"]
+    UC1["Consultar catálogo"]
+    UC2["Gerenciar carrinho"]
+    UC3["Finalizar pedido"]
+    UC4["Acompanhar pedido"]
+    UC5["Autenticar na área da loja"]
+    UC6["Listar pedidos"]
+    UC7["Atualizar status do pedido"]
   end
   C --- UC1
   C --- UC2
@@ -29,34 +29,34 @@ flowchart LR
 ```mermaid
 classDiagram
   class Cliente {
-    +id\_cliente: int
+    +id_cliente: int
     +nome: string
     +email: string
     +telefone: string
-    +criado\_em: datetime
+    +criado_em: datetime
   }
   class Produto {
-    +id\_produto: int
+    +id_produto: int
     +nome: string
     +descricao: string
     +preco: decimal
     +ativo: bool
   }
   class Pedido {
-    +id\_pedido: int
-    +endereco\_entrega: string
-    +forma\_pagamento: string
+    +id_pedido: int
+    +endereco_entrega: string
+    +forma_pagamento: string
     +status: string
     +total: decimal
-    +criado\_em: datetime
+    +criado_em: datetime
   }
   class ItemPedido {
     +quantidade: int
-    +preco\_unitario: decimal
+    +preco_unitario: decimal
   }
-  Cliente "1" --> "0..\*" Pedido : realiza
-  Pedido "1" \*-- "1..\*" ItemPedido : contém
-  Produto "1" --> "0..\*" ItemPedido : é vendido em
+  Cliente "1" --> "0..*" Pedido : realiza
+  Pedido "1" *-- "1..*" ItemPedido : contém
+  Produto "1" --> "0..*" ItemPedido : é vendido em
 ```
 3. Diagrama de sequência – Finalizar pedido
 ```mermaid
@@ -68,7 +68,7 @@ sequenceDiagram
   participant B as Banco (SQLite)
   Cliente->>V: Preenche dados e confirma
   V->>C: POST /checkout
-  C->>M: criar\_pedido(dados, carrinho)
+  C->>M: criar_pedido(dados, carrinho)
   M->>M: Valida nome, e-mail, telefone, endereço e pagamento
   alt dados inválidos ou carrinho vazio
     M-->>C: ValidationError
@@ -85,63 +85,66 @@ sequenceDiagram
 4. Diagrama de atividades – Fluxo de compra
 ```mermaid
 flowchart TD
-  A(\[Início]) --> B\[Consultar catálogo]
-  B --> C\[Adicionar cupcake ao carrinho]
+  A["Início"] --> B[Consultar catálogo]
+  B --> C[Adicionar cupcake ao carrinho]
   C --> D{Adicionar mais itens?}
   D -- Sim --> C
-  D -- Não --> E\[Revisar carrinho]
-  E --> F\[Finalizar pedido]
-  F --> G\[Informar dados, endereço e pagamento]
+  D -- Não --> E[Revisar carrinho]
+  E --> F[Finalizar pedido]
+  F --> G[Informar dados, endereço e pagamento]
   G --> H{Dados válidos?}
-  H -- Não --> I\[Exibir mensagem de erro]
+  H -- Não --> I[Exibir mensagem de erro]
   I --> G
-  H -- Sim --> J\[Registrar pedido com status RECEBIDO]
-  J --> K\[Lojista atualiza o status]
-  K --> L\[Cliente acompanha o pedido]
-  L --> M(\[Fim])
+  H -- Sim --> J[Registrar pedido com status RECEBIDO]
+  J --> K[Lojista atualiza o status]
+  K --> L[Cliente acompanha o pedido]
+  L --> M["Fim"]
 ```
 5. Diagrama de estados – Status do pedido
 ```mermaid
 stateDiagram-v2
-  \[\*] --> RECEBIDO
+  [*] --> RECEBIDO
   RECEBIDO --> PREPARANDO
-  PREPARANDO --> EM\_ENTREGA
-  EM\_ENTREGA --> ENTREGUE
+  PREPARANDO --> EM_ENTREGA
+  EM_ENTREGA --> ENTREGUE
   RECEBIDO --> CANCELADO
   PREPARANDO --> CANCELADO
-  ENTREGUE --> \[\*]
-  CANCELADO --> \[\*]
+  ENTREGUE --> [*]
+  CANCELADO --> [*]
 ```
 6. Diagrama entidade-relacionamento (modelo lógico/físico)
 ```mermaid
 erDiagram
   CLIENTE ||--o{ PEDIDO : realiza
-  PEDIDO ||--|{ ITEM\_PEDIDO : contem
-  PRODUTO ||--o{ ITEM\_PEDIDO : "e vendido em"
+  PEDIDO ||--|{ ITEM_PEDIDO : contem
+  PRODUTO ||--o{ ITEM_PEDIDO : "e vendido em"
   CLIENTE {
-    int id\_cliente PK
+    int id_cliente PK
     string nome
     string email UK
     string telefone
-    datetime criado\_em
+    datetime criado_em
   }
   PRODUTO {
-    int id\_produto PK
+    int id_produto PK
     string nome
     string descricao
     decimal preco
     int ativo
   }
   PEDIDO {
-    int id\_pedido PK
-    int id\_cliente FK
-    string endereco\_entrega
-    string forma\_pagamento
+    int id_pedido PK
+    int id_cliente FK
+    string endereco_entrega
+    string forma_pagamento
     string status
     decimal total
-    datetime criado\_em
+    datetime criado_em
   }
-  ITEM\_PEDIDO {
-    int id\_pedido PK
-    int id\_produto PK
-    in
+  ITEM_PEDIDO {
+    int id_pedido PK
+    int id_produto PK
+    int quantidade
+    decimal preco_unitario
+  }
+```
