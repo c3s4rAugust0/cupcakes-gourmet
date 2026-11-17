@@ -1,3 +1,99 @@
+import os
+import tempfile
+import unittest
+
+import models
+from app import create_app
+
+
+class CupcakesModelTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = os.path.join(self.tmp.name, "test_cupcakes.db")
+        models.init_db(self.db)
+        self.produtos = models.listar_produtos(self.db)
+        self.pid = self.produtos[0]["id_produto"]
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def dados_cliente(self):
+        return ("Cesar Augusto", "cesar@example.com", "(11) 99999-8888",
+                "Rua das Flores, 123 - Centro", "PIX")
+
+    def criar_pedido_teste(self, carrinho=None):
+        # Usa o carrinho padrão somente quando nenhum carrinho foi informado.
+        # Um dicionário vazio ({}) deve continuar vazio para testar sua rejeição.
+        if carrinho is None:
+            carrinho = {str(self.pid): 2}
+
+        return models.criar_pedido(
+            self.db,
+            *self.dados_cliente(),
+            carrinho
+        )
+
+    def test_01_banco_inicializa_com_produtos(self):
+        self.assertGreaterEqual(len(self.produtos), 1)
+
+    def test_02_listar_produtos_retorna_produtos_ativos(self):
+        self.assertTrue(all(p["ativo"] == 1 for p in self.produtos))
+
+    def test_03_obter_produto_existente(self):
+        self.assertIsNotNone(models.obter_produto(self.db, self.pid))
+
+    def test_04_obter_produto_inexistente(self):
+        self.assertIsNone(models.obter_produto(self.db, 999999))
+
+    def test_05_validar_cliente_normaliza_email_e_telefone(self):
+        nome, email, telefone, endereco = models.validar_cliente(
+            " Cesar Augusto ", " CESAR@EXAMPLE.COM ", "(11) 99999-8888",
+            " Rua das Flores, 123 ", "PIX")
+        self.assertEqual(nome, "Cesar Augusto")
+        self.assertEqual(email, "cesar@example.com")
+        self.assertEqual(telefone, "11999998888")
+        self.assertEqual(endereco, "Rua das Flores, 123")
+
+    def test_06_rejeitar_nome_muito_curto(self):
+        with self.assertRaises(models.ValidationError):
+            models.validar_cliente("Jo", "jo@example.com", "11999998888",
+                                   "Rua das Flores, 123", "PIX")
+
+    def test_07_rejeitar_email_invalido(self):
+        with self.assertRaises(models.ValidationError):
+            models.validar_cliente("Joao Silva", "email-invalido", "11999998888",
+                                   "Rua das Flores, 123", "PIX")
+
+    def test_08_rejeitar_telefone_invalido(self):
+        with self.assertRaises(models.ValidationError):
+            models.validar_cliente("Joao Silva", "joao@example.com", "12345",
+                                   "Rua das Flores, 123", "PIX")
+
+    def test_09_rejeitar_endereco_curto(self):
+        with self.assertRaises(models.ValidationError):
+            models.validar_cliente("Joao Silva", "joao@example.com", "11999998888",
+                                   "Rua 1", "PIX")
+
+    def test_10_rejeitar_forma_pagamento_invalida(self):
+        with self.assertRaises(models.ValidationError):
+            models.validar_cliente("Joao Silva", "joao@example.com", "11999998888",
+                                   "Rua das Flores, 123", "BOLETO")
+
+    def test_11_rejeitar_carrinho_vazio(self):
+        with self.assertRaises(models.ValidationError):
+            self.criar_pedido_teste({})
+
+    def test_12_rejeitar_produto_inexistente_no_carrinho(self):
+        with self.assertRaises(models.ValidationError):
+            self.criar_pedido_teste({"999999": 1})
+
+    def test_13_criar_pedido_calcula_total(self):
+        oid = self.criar_pedido_teste({str(self.pid): 2})
+        pedido, itens = models.consultar_pedido(self.db, oid, "cesar@example.com")
+        self.assertIsNotNone(pedido)
+        self.assertEqual(len(itens), 1)
+        self.assertEqual(itens[0]["quantidade"], 2)
+        self.assertAlmostEqual(float(pedido["total"]), float(itens[0]["preco_unitario"]) * 2, places=2)
 
     def test_14_consultar_pedido_com_email_correto(self):
         oid = self.criar_pedido_teste()
