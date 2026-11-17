@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% block c %}<h1>Nossos cupcakes</h1><div class="grid">
-{% for p in produtos %}<article class="card"><h2>{{ p.nome }}</h2><p>{{ p.descricao }}</p><strong>{{ p.preco|brl }}</strong>
+{% extends "base.html" %}{% from "_cupcake.html" import cupcake %}{% block c %}<h1>Nossos cupcakes</h1><div class="grid">
+{% for p in produtos %}<article class="card">{{ cupcake(p.nome|cor) }}<h2>{{ p.nome }}</h2><p>{{ p.descricao }}</p><strong>{{ p.preco|brl }}</strong>
 <form method="post" action="{{ url_for('main.adicionar', pid=p.id_produto) }}"><label>Qtd <input type="number" name="qtd" value="1" min="1" max="50"></label>
 <button>Adicionar</button></form></article>{% endfor %}</div>{% endblock %}
