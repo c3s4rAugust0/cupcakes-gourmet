@@ -42,6 +42,8 @@ def validar_cliente(nome, email, telefone, endereco, pagamento):
     nome, email, endereco = (nome or "").strip(), (email or "").strip().lower(), (endereco or "").strip()
     tel = re.sub(r"\D", "", telefone or "")
     if len(nome) < 3: raise ValidationError("Informe o nome completo.")
+    if not re.fullmatch(r"[^\W\d_]+(?:[ '\-][^\W\d_]+)*", nome):
+        raise ValidationError("O nome deve conter apenas letras (sem números ou símbolos).")
     if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email): raise ValidationError("E-mail inválido.")
     if len(tel) not in (10, 11): raise ValidationError("Telefone inválido (use DDD + número).")
     if len(endereco) < 10: raise ValidationError("Informe o endereço completo de entrega.")

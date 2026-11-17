@@ -10,6 +10,9 @@ def create_app(db_path=None):
     models.init_db(app.config["DATABASE"])
     app.register_blueprint(controllers.bp)
     app.jinja_env.filters["brl"] = lambda v: "R$ " + f"{float(v):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    cores = {"Red Velvet": "#c0392b", "Brigadeiro Gourmet": "#5d3a1a", "Limão Siciliano": "#f1c40f",
+             "Ninho com Nutella": "#8e5b3a", "Cenoura com Chocolate": "#e67e22"}
+    app.jinja_env.filters["cor"] = lambda nome: cores.get(nome, "#d6336c")
     return app
 
 if __name__ == "__main__":

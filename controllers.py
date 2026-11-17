@@ -36,6 +36,15 @@ def adicionar(pid):
     flash("Cupcake adicionado ao carrinho!", "ok")
     return redirect(url_for("main.catalogo"))
 
+@bp.route("/carrinho/diminuir/<int:pid>", methods=["POST"])
+def diminuir(pid):
+    car = _carrinho()
+    if str(pid) in car:
+        car[str(pid)] -= 1
+        if car[str(pid)] < 1: car.pop(str(pid))
+        session.modified = True
+    return redirect(url_for("main.carrinho"))
+
 @bp.route("/carrinho/remover/<int:pid>", methods=["POST"])
 def remover(pid):
     _carrinho().pop(str(pid), None); session.modified = True
